@@ -748,46 +748,6 @@
             }
         };
 
-        const saveProgress = () => {
-            const data = {
-                currentSectionIndex,
-                sectionResults,
-                sections,
-            };
-            localStorage.setItem(storageKey, JSON.stringify(data));
-        };
-
-        const clearProgress = () => {
-            localStorage.removeItem(storageKey);
-        };
-
-        const tryResume = () => {
-            const saved = localStorage.getItem(storageKey);
-            if (!saved) return false;
-            
-            try {
-                const data = JSON.parse(saved);
-                if (data.currentSectionIndex >= totalStages) {
-                    clearProgress();
-                    return false;
-                }
-                
-                // Override local variables
-                currentSectionIndex = data.currentSectionIndex;
-                sectionResults = data.sectionResults || [];
-                // Penting: timpa sections agar urutan gambar tidak berubah saat refresh
-                if (data.sections && data.sections.length > 0) {
-                    sections.splice(0, sections.length, ...data.sections);
-                }
-                
-                console.log('Resuming from section', currentSectionIndex + 1);
-                return true;
-            } catch (e) {
-                console.error('Error resuming:', e);
-                return false;
-            }
-        };
-
         const startSectionCountdown = () => {
             if (countdownTimer) {
                 clearTimeout(countdownTimer);
