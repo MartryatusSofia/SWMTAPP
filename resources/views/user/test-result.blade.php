@@ -488,7 +488,7 @@
         transition: all 0.4s ease;
     ">
         <a
-            href="{{ route('register.test') }}"
+            href="{{ route('student.dashboard') }}"
             style="
                 display: flex;
                 align-items: center;
@@ -508,7 +508,7 @@
             onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 25px rgba(7, 69, 101, 0.3)'; this.style.filter='brightness(1)'"
         >
             <span class="material-symbols-rounded" style="font-size: 1.2rem;">home</span>
-            Tes Kembali
+            Kembali ke Beranda
         </a>
     </div>
 

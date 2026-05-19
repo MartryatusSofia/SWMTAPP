@@ -91,6 +91,11 @@
             }
         }
 
+        @keyframes shimmer {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 200% 50%; }
+        }
+
         .test-shell {
             width: min(800px, 100%);
             background: rgba(255, 255, 255, 0.55);
@@ -183,6 +188,30 @@
             margin-bottom: 28px;
         }
 
+        .media-frame {
+            width: min(220px, 100%);
+            min-height: 225px;
+            position: relative;
+            display: grid;
+            place-items: center;
+        }
+
+        .media-frame::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: 16px;
+            background: linear-gradient(90deg, rgba(224, 234, 241, 0.82), rgba(248, 250, 252, 0.96), rgba(224, 234, 241, 0.82));
+            background-size: 220% 100%;
+            animation: shimmer 1.35s ease-in-out infinite;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .media-frame.is-loading::before {
+            opacity: 1;
+        }
+
         .face-image {
             max-width: 190px;
             width: 100%;
@@ -190,6 +219,12 @@
             border-radius: 16px;
             box-shadow: 0 8px 24px rgba(31, 41, 55, 0.1);
             object-fit: cover;
+            transition: opacity 0.2s ease;
+        }
+
+        .image-hidden {
+            opacity: 0;
+            visibility: hidden;
         }
 
         .fruit-card {
@@ -586,18 +621,20 @@
                     <p class="face-prompt" id="stagePrompt">{{ $stagePrompt }}</p>
 
                     <div class="face-image-container">
-                        <img
-                            class="face-image"
-                            id="faceImage"
-                            src="{{ $randomImage ? asset($randomImage) : '' }}"
-                            alt="Wajah"
-                            style="display: {{ $randomImage ? 'block' : 'none' }};"
-                        >
-                        <div
-                            id="faceFallback"
-                            style="width: 190px; height: 225px; background: #e0e0e0; border-radius: 16px; display: {{ $randomImage ? 'none' : 'grid' }}; place-items: center; color: #999;"
-                        >
-                            Gambar tidak tersedia
+                        <div class="media-frame {{ $randomImage ? 'is-loading' : '' }}" id="faceMediaFrame">
+                            <img
+                                class="face-image {{ $randomImage ? '' : 'image-hidden' }}"
+                                id="faceImage"
+                                src="{{ $randomImage ? asset($randomImage) : '' }}"
+                                alt="Wajah"
+                                style="display: {{ $randomImage ? 'block' : 'none' }};"
+                            >
+                            <div
+                                id="faceFallback"
+                                style="width: 190px; height: 225px; background: #e0e0e0; border-radius: 16px; display: {{ $randomImage ? 'none' : 'grid' }}; place-items: center; color: #999; position: absolute; inset: 0;"
+                            >
+                                Gambar tidak tersedia
+                            </div>
                         </div>
                     </div>
 
@@ -611,7 +648,12 @@
 
                 <article class="fruit-card" id="fruitCard">
                     <p class="fruit-question" id="fruitQuestion">Buah apakah ini?</p>
-                    <img class="fruit-image" id="fruitImage" src="" alt="Gambar buah" style="display: none;">
+                    <div class="media-frame" id="fruitMediaFrame" style="min-height: 190px; width: 100%;">
+                        <img class="fruit-image image-hidden" id="fruitImage" src="" alt="Gambar buah" style="display: none;">
+                        <div id="fruitFallback" style="width: min(190px, 100%); min-height: 190px; border-radius: 16px; display: grid; place-items: center; background: #e0e0e0; color: #999; position: absolute; inset: 0;">
+                            Gambar tidak tersedia
+                        </div>
+                    </div>
 
                     <div class="choice-row" id="choiceRow"></div>
                 </article>
@@ -674,13 +716,16 @@
         const testShell = document.getElementById('testShell');
         const progressText = document.getElementById('progressText');
         const progressFill = document.getElementById('progressFill');
+        const faceMediaFrame = document.getElementById('faceMediaFrame');
         const faceImage = document.getElementById('faceImage');
         const faceFallback = document.getElementById('faceFallback');
         const stagePrompt = document.getElementById('stagePrompt');
         const personSection = document.getElementById('personSection');
         const fruitCard = document.getElementById('fruitCard');
+        const fruitMediaFrame = document.getElementById('fruitMediaFrame');
         const fruitQuestion = document.getElementById('fruitQuestion');
         const fruitImage = document.getElementById('fruitImage');
+        const fruitFallback = document.getElementById('fruitFallback');
         const choiceRow = document.getElementById('choiceRow');
         const testContent = document.querySelector('.test-content');
         const recallStage = document.getElementById('recallStage');
@@ -715,6 +760,119 @@
         let progressSyncTimer = null;
         let progressSyncInFlight = false;
         let pendingProgressSync = false;
+        let mediaRenderToken = 0;
+        const imagePreloadCache = new Map();
+
+        const getAssetUrl = (imagePath) => {
+            if (!imagePath) {
+                return '';
+            }
+
+            return `/${String(imagePath).replace(/^\/+/, '')}`;
+        };
+
+        const preloadImage = (imagePath) => {
+            const src = getAssetUrl(imagePath);
+
+            if (!src) {
+                return Promise.resolve(null);
+            }
+
+            if (imagePreloadCache.has(src)) {
+                return imagePreloadCache.get(src);
+            }
+
+            const promise = new Promise((resolve) => {
+                const image = new Image();
+                image.onload = () => resolve(src);
+                image.onerror = () => resolve(null);
+                image.src = src;
+            });
+
+            imagePreloadCache.set(src, promise);
+            return promise;
+        };
+
+        const preloadSectionAssets = () => {
+            const assetPaths = new Set();
+
+            sections.forEach((section) => {
+                (Array.isArray(section.slides) ? section.slides : []).forEach((slide) => {
+                    if (slide && slide.image) {
+                        assetPaths.add(slide.image);
+                    }
+                });
+
+                (Array.isArray(section.recall_targets) ? section.recall_targets : []).forEach((assetPath) => {
+                    if (assetPath) {
+                        assetPaths.add(assetPath);
+                    }
+                });
+
+                (Array.isArray(section.recall_options) ? section.recall_options : []).forEach((assetPath) => {
+                    if (assetPath) {
+                        assetPaths.add(assetPath);
+                    }
+                });
+            });
+
+            assetPaths.forEach((assetPath) => {
+                preloadImage(assetPath);
+            });
+        };
+
+        const renderImageWithLoading = async ({ frameElement, imageElement, fallbackElement, imagePath }) => {
+            const currentToken = ++mediaRenderToken;
+            const src = getAssetUrl(imagePath);
+
+            if (!src) {
+                frameElement.classList.remove('is-loading');
+                imageElement.classList.add('image-hidden');
+                imageElement.style.display = 'none';
+                fallbackElement.style.display = 'grid';
+                imageElement.removeAttribute('src');
+                return;
+            }
+
+            frameElement.classList.add('is-loading');
+            fallbackElement.style.display = 'none';
+            imageElement.style.display = 'block';
+            imageElement.classList.add('image-hidden');
+
+            await preloadImage(imagePath);
+
+            if (currentToken !== mediaRenderToken) {
+                return;
+            }
+
+            const handleLoaded = () => {
+                if (currentToken !== mediaRenderToken) {
+                    return;
+                }
+
+                imageElement.classList.remove('image-hidden');
+                frameElement.classList.remove('is-loading');
+            };
+
+            const handleError = () => {
+                if (currentToken !== mediaRenderToken) {
+                    return;
+                }
+
+                frameElement.classList.remove('is-loading');
+                imageElement.classList.add('image-hidden');
+                imageElement.style.display = 'none';
+                fallbackElement.style.display = 'grid';
+            };
+
+            imageElement.onload = handleLoaded;
+            imageElement.onerror = handleError;
+            imageElement.src = src;
+
+            if (imageElement.complete && imageElement.naturalWidth > 0) {
+                handleLoaded();
+            }
+        };
 
         const buildProgressData = () => {
             return {
@@ -946,8 +1104,12 @@
                 sectionScoreStage.style.display = 'none';
 
                 fruitQuestion.textContent = nextPrompt;
-                fruitImage.src = nextImage ? `/${nextImage}` : '';
-                fruitImage.style.display = nextImage ? 'block' : 'none';
+                renderImageWithLoading({
+                    frameElement: fruitMediaFrame,
+                    imageElement: fruitImage,
+                    fallbackElement: fruitFallback,
+                    imagePath: nextImage,
+                });
 
                 const choices = Array.isArray(currentSlide.choices) ? currentSlide.choices : [];
                 choiceRow.innerHTML = '';
@@ -970,14 +1132,12 @@
             sectionScoreStage.style.display = 'none';
             stagePrompt.textContent = nextPrompt;
 
-            if (nextImage) {
-                faceImage.src = `/${nextImage}`;
-                faceImage.style.display = 'block';
-                faceFallback.style.display = 'none';
-            } else {
-                faceImage.style.display = 'none';
-                faceFallback.style.display = 'grid';
-            }
+            renderImageWithLoading({
+                frameElement: faceMediaFrame,
+                imageElement: faceImage,
+                fallbackElement: faceFallback,
+                imagePath: nextImage,
+            });
         };
 
         const updatePickedSummary = (targets) => {
@@ -1192,6 +1352,7 @@
             }
 
             hasStartedFlow = true;
+            preloadSectionAssets();
             
             const wasResumed = tryResume();
             if (wasResumed) {
