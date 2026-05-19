@@ -41,12 +41,16 @@ Route::delete('/teacher/classes/{teacherClass}', [AdminRegistrationController::c
 Route::get('/teacher/swmt-users', [AdminRegistrationController::class, 'adminIndex'])->name('teacher.swmt.users');
 Route::get('/teacher/registrations/{registration}/edit', [AdminRegistrationController::class, 'edit'])->name('teacher.registrations.edit');
 Route::put('/teacher/registrations/{registration}', [AdminRegistrationController::class, 'update'])->name('teacher.registrations.update');
-Route::get('/teacher/export-pdf', [AdminRegistrationController::class, 'exportPdf'])->name('teacher.export.pdf');
+Route::get('/teacher/export-pdf', [AdminRegistrationController::class, 'exportPdf'])
+    ->middleware('signed')
+    ->name('teacher.export.pdf');
 Route::delete('/teacher/registrations/{registration}', [AdminRegistrationController::class, 'destroy'])->name('teacher.registrations.destroy');
 Route::get('/teacher/profile', [AdminRegistrationController::class, 'editProfile'])->name('teacher.profile.edit');
 Route::put('/teacher/profile', [AdminRegistrationController::class, 'updateProfile'])->name('teacher.profile.update');
 
 // Super Admin Routes
 Route::get('/superadmin/dashboard', [SuperAdminController::class, 'dashboard'])->name('superadmin.dashboard');
-Route::get('/superadmin/export-pdf', [SuperAdminController::class, 'exportPdf'])->name('superadmin.export.pdf');
+Route::get('/superadmin/export-pdf', [SuperAdminController::class, 'exportPdf'])
+    ->middleware('signed')
+    ->name('superadmin.export.pdf');
 Route::delete('/superadmin/registrations/{registration}', [SuperAdminController::class, 'destroy'])->name('superadmin.registrations.destroy');

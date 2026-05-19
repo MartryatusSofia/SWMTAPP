@@ -7,6 +7,7 @@ use App\Models\TestRegistration;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\URL;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -46,21 +47,26 @@ class SuperAdminController extends Controller
             ->latest()
             ->paginate(15);
 
+        $exportPdfUrl = URL::temporarySignedRoute(
+            'superadmin.export.pdf',
+            now()->addMinutes(10),
+            array_filter([
+                'q' => $search,
+            ], static fn ($value) => $value !== null && $value !== '')
+        );
+
         return view('superadmin.dashboard', [
             'totalTeachers' => $totalTeachers,
             'totalClasses' => $totalClasses,
             'totalStudents' => $totalStudents,
             'registrations' => $registrations,
             'search' => $search,
+            'exportPdfUrl' => $exportPdfUrl,
         ]);
     }
 
     public function exportPdf(Request $request)
     {
-        if (!Auth::check() || Auth::user()->role !== 'superadmin') {
-            abort(403);
-        }
-
         $search = trim((string) $request->query('q', ''));
 
         $registrations = TestRegistration::query()
