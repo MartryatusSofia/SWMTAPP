@@ -283,7 +283,7 @@
                         <input class="search-input" type="search" name="q" value="{{ $search }}" placeholder="Cari nama, sekolah, atau kelas">
                         <button class="search-btn" type="submit">Search</button>
                     </form>
-                    <a href="{{ $exportPdfUrl }}" class="btn btn-success">
+                    <a href="{{ route('superadmin.export.pdf', ['q' => $search]) }}" class="btn btn-success">
                         <span class="material-symbols-rounded">picture_as_pdf</span> PDF
                     </a>
                 </div>

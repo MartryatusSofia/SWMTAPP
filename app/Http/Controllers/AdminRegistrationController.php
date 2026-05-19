@@ -8,7 +8,6 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -55,23 +54,12 @@ class AdminRegistrationController extends Controller
             ->latest()
             ->get();
 
-        $exportPdfUrl = URL::temporarySignedRoute(
-            'teacher.export.pdf',
-            now()->addMinutes(10),
-            array_filter([
-                'teacher_id' => $teacher->id,
-                'q' => $search,
-                'class_id' => $selectedClassId,
-            ], static fn ($value) => $value !== null && $value !== '')
-        );
-
         return view('admin.users', [
             'registrations' => $registrations,
             'search' => $search,
             'searchClasses' => $searchClasses,
             'selectedClassId' => $selectedClassId,
             'teacherClasses' => $teacherClasses,
-            'exportPdfUrl' => $exportPdfUrl,
         ]);
     }
 
@@ -160,8 +148,8 @@ class AdminRegistrationController extends Controller
 
     public function exportPdf(Request $request)
     {
-        $teacherId = (int) $request->query('teacher_id');
-        if ($teacherId <= 0) {
+        $teacher = Auth::user();
+        if (!$teacher) {
             abort(403);
         }
 
@@ -169,8 +157,8 @@ class AdminRegistrationController extends Controller
         $search = trim((string) $request->query('q', ''));
 
         $registrations = TestRegistration::query()
-            ->whereHas('teacherClass', function ($query) use ($teacherId) {
-                $query->where('user_id', $teacherId);
+            ->whereHas('teacherClass', function ($query) use ($teacher) {
+                $query->where('user_id', $teacher->id);
             })
             ->when($selectedClassId, function ($query) use ($selectedClassId) {
                 $query->where('teacher_class_id', $selectedClassId);
@@ -189,7 +177,7 @@ class AdminRegistrationController extends Controller
         $className = null;
         if ($selectedClassId) {
             $class = TeacherClass::where('id', $selectedClassId)
-                ->where('user_id', $teacherId)
+                ->where('user_id', $teacher->id)
                 ->first();
             $className = $class ? $class->name : null;
         }
