@@ -104,7 +104,9 @@
 </head>
 <body>
     <div class="header">
-        <img src="{{ public_path('images/Logo.png') }}" style="width: 80px; height: auto; margin-bottom: 10px;">
+        <div style="display: inline-block; margin-bottom: 10px; padding: 8px 14px; border: 2px solid #6366f1; border-radius: 999px; font-weight: bold; letter-spacing: 1px; color: #6366f1;">
+            SWMT
+        </div>
         <h1>HASIL TEST SWMT</h1>
         <p>Spatial Working Memory Test - TUP X UMP</p>
         <p style="font-size: 11px; color: #7a869a; margin-top: 8px;">Dokumen ini diunduh pada: {{ now()->timezone('Asia/Jakarta')->format('d/m/Y H:i:s') }} WIB</p>

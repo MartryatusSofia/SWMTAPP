@@ -63,7 +63,9 @@
 </head>
 <body>
     <div class="header">
-        <img src="{{ public_path('images/Logo.png') }}" style="width: 70px; height: auto; margin-bottom: 10px;">
+        <div style="display: inline-block; margin-bottom: 10px; padding: 8px 14px; border: 2px solid #444; border-radius: 999px; font-weight: bold; letter-spacing: 1px;">
+            SWMT
+        </div>
         <h1>Laporan Data Siswa</h1>
         <p>Spatial Working Memory Test (SWMT) - {{ isset($isSuperAdmin) && $isSuperAdmin ? 'Global Dashboard' : 'Dashboard Guru' }}</p>
         @if(isset($className))
