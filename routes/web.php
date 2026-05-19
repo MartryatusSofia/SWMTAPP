@@ -15,6 +15,10 @@ Route::get('/student/register', [StudentAuthController::class, 'showRegister'])-
 Route::post('/student/register', [StudentAuthController::class, 'register'])->name('student.register.process');
 Route::get('/student/login', [StudentAuthController::class, 'showLogin'])->name('student.login');
 Route::post('/student/login', [StudentAuthController::class, 'login'])->name('student.login.process');
+Route::get('/student/dashboard', [StudentAuthController::class, 'dashboard'])->name('student.dashboard');
+Route::get('/student/start/with-code', [StudentAuthController::class, 'showWithCodeForm'])->name('student.start.with-code');
+Route::post('/student/start/with-code', [StudentAuthController::class, 'startWithCode'])->name('student.start.with-code.submit');
+Route::post('/student/start/independent', [StudentAuthController::class, 'startIndependent'])->name('student.start.independent');
 Route::get('/student/auth/google', [StudentAuthController::class, 'redirectToGoogle'])->name('student.google');
 Route::post('/student/logout', [StudentAuthController::class, 'logout'])->name('student.logout');
 
@@ -23,6 +27,7 @@ Route::post('/register-test', [UserRegistrationController::class, 'store'])->nam
 Route::get('/test-guide/{registration}', [UserRegistrationController::class, 'showGuide'])->name('test.guide');
 Route::post('/logout', [UserRegistrationController::class, 'logout'])->name('user.logout');
 Route::get('/test/{registration}', [UserRegistrationController::class, 'startTest'])->name('test.start');
+Route::post('/test/{registration}/progress', [UserRegistrationController::class, 'updateProgress'])->name('test.progress.update');
 Route::get('/test-fruit/{registration}', [UserRegistrationController::class, 'showFruitStage'])->name('test.fruit');
 Route::get('/test-result/{registration}', [UserRegistrationController::class, 'showResult'])->name('test.result');
 Route::get('/test-result/{registration}/pdf', [UserRegistrationController::class, 'exportResultPdf'])->name('test.result.pdf');

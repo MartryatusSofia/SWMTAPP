@@ -128,8 +128,8 @@ class AdminAuthController extends Controller
 
         if ($loginRole === 'student') {
             return redirect()
-                ->route('register.test')
-                ->with('success', 'Login siswa dengan Google berhasil. Silakan isi data tes.');
+                ->route('student.dashboard')
+                ->with('success', 'Login siswa dengan Google berhasil.');
         }
 
         if ($user->role === 'superadmin') {

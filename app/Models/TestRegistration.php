@@ -11,6 +11,7 @@ class TestRegistration extends Model
     use HasFactory;
 
     protected $fillable = [
+        'user_id',
         'school',
         'class_name',
         'name',
@@ -23,6 +24,13 @@ class TestRegistration extends Model
         'urutan_salah',
         'total_poin',
         'tested_at',
+        'progress_current_section',
+        'progress_current_slide',
+        'progress_ui_stage',
+        'progress_picked_order',
+        'progress_section_results',
+        'progress_sections',
+        'progress_updated_at',
     ];
 
     protected function casts(): array
@@ -30,11 +38,20 @@ class TestRegistration extends Model
         return [
             'birth_date' => 'date',
             'tested_at' => 'datetime',
+            'progress_picked_order' => 'array',
+            'progress_section_results' => 'array',
+            'progress_sections' => 'array',
+            'progress_updated_at' => 'datetime',
         ];
     }
 
     public function teacherClass(): BelongsTo
     {
         return $this->belongsTo(TeacherClass::class);
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 }
