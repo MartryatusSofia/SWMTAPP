@@ -762,6 +762,7 @@
         let pendingProgressSync = false;
         let mediaRenderToken = 0;
         const imagePreloadCache = new Map();
+        const linkPreloadCache = new Set();
 
         const getAssetUrl = (imagePath) => {
             if (!imagePath) {
@@ -782,8 +783,19 @@
                 return imagePreloadCache.get(src);
             }
 
+            if (!linkPreloadCache.has(src)) {
+                const link = document.createElement('link');
+                link.rel = 'preload';
+                link.as = 'image';
+                link.href = src;
+                linkPreloadCache.add(src);
+                document.head.appendChild(link);
+            }
+
             const promise = new Promise((resolve) => {
                 const image = new Image();
+                image.decoding = 'async';
+                image.loading = 'eager';
                 image.onload = () => resolve(src);
                 image.onerror = () => resolve(null);
                 image.src = src;
@@ -793,8 +805,31 @@
             return promise;
         };
 
-        const preloadSectionAssets = () => {
+        const preloadSectionAssets = (activeSectionIndex = currentSectionIndex) => {
             const assetPaths = new Set();
+            const prioritizedPaths = [];
+            const activeSection = sections[activeSectionIndex] || null;
+
+            if (activeSection) {
+                const activeSlides = Array.isArray(activeSection.slides) ? activeSection.slides : [];
+                const activeSlide = activeSlides[currentSlideIndex] || null;
+
+                if (activeSlide && activeSlide.image) {
+                    prioritizedPaths.push(activeSlide.image);
+                }
+
+                (Array.isArray(activeSection.recall_targets) ? activeSection.recall_targets : []).forEach((assetPath) => {
+                    if (assetPath) {
+                        prioritizedPaths.push(assetPath);
+                    }
+                });
+
+                (Array.isArray(activeSection.recall_options) ? activeSection.recall_options : []).forEach((assetPath) => {
+                    if (assetPath) {
+                        prioritizedPaths.push(assetPath);
+                    }
+                });
+            }
 
             sections.forEach((section) => {
                 (Array.isArray(section.slides) ? section.slides : []).forEach((slide) => {
@@ -814,6 +849,10 @@
                         assetPaths.add(assetPath);
                     }
                 });
+            });
+
+            prioritizedPaths.forEach((assetPath) => {
+                preloadImage(assetPath);
             });
 
             assetPaths.forEach((assetPath) => {
@@ -839,13 +878,15 @@
             imageElement.style.display = 'block';
             imageElement.classList.add('image-hidden');
 
-            await preloadImage(imagePath);
+            preloadImage(imagePath);
 
             if (currentToken !== mediaRenderToken) {
                 return;
             }
 
             const handleLoaded = () => {
+            imageElement.removeAttribute('onload');
+            imageElement.removeAttribute('onerror');
                 if (currentToken !== mediaRenderToken) {
                     return;
                 }
@@ -1104,6 +1145,7 @@
                 sectionScoreStage.style.display = 'none';
 
                 fruitQuestion.textContent = nextPrompt;
+                preloadSectionAssets(currentSectionIndex);
                 renderImageWithLoading({
                     frameElement: fruitMediaFrame,
                     imageElement: fruitImage,
@@ -1131,6 +1173,8 @@
             recallStage.style.display = 'none';
             sectionScoreStage.style.display = 'none';
             stagePrompt.textContent = nextPrompt;
+
+            preloadSectionAssets(currentSectionIndex);
 
             renderImageWithLoading({
                 frameElement: faceMediaFrame,
@@ -1306,9 +1350,11 @@
             const recallTargets = Array.isArray(section.recall_targets) ? section.recall_targets : [];
             const recallPeopleOptions = Array.isArray(section.recall_options) ? section.recall_options : [];
 
+            preloadSectionAssets(currentSectionIndex);
+
             recallOptions.innerHTML = recallPeopleOptions.map((imagePath) => (
                 `<button class="recall-option" type="button" data-image="${imagePath}">
-                    <img src="/${imagePath}" alt="Opsi wajah">
+                    <img src="/${imagePath}" alt="Opsi wajah" loading="eager" decoding="async" fetchpriority="high">
                 </button>`
             )).join('');
 
@@ -1352,7 +1398,6 @@
             }
 
             hasStartedFlow = true;
-            preloadSectionAssets();
             
             const wasResumed = tryResume();
             if (wasResumed) {
@@ -1360,9 +1405,11 @@
             } else {
                 saveProgress();
             }
-            
+            preloadSectionAssets(currentSectionIndex);
             setTimeout(startSectionCountdown, 500);
         };
+
+        preloadSectionAssets(currentSectionIndex);
 
         // Mulai countdown awal test
         window.addEventListener('load', initTestFlow);
