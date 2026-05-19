@@ -46,25 +46,6 @@
             gap: 12px;
         }
 
-        .brand {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            text-decoration: none;
-            color: #2d6798;
-            font-size: 1.2rem;
-            font-weight: 900;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
-        }
-
-        .brand img {
-            width: 28px;
-            height: 28px;
-            object-fit: cover;
-            border-radius: 50%;
-        }
-
         .top-btn {
             display: inline-flex;
             align-items: center;
@@ -80,10 +61,6 @@
             font-weight: 600;
             cursor: pointer;
             font-family: inherit;
-        }
-
-        .top-form {
-            margin: 0;
         }
 
         .material-symbols-rounded {
@@ -549,18 +526,6 @@
 <body>
     <main class="page">
         <div class="topbar">
-            <a href="{{ url('/') }}" class="brand">
-                <img src="{{ asset('images/Logo.png') }}" alt="Logo SWMT">
-                <span>SWMT</span>
-            </a>
-
-            <form class="top-form" action="{{ route('user.logout') }}" method="post">
-                @csrf
-                <button type="submit" class="top-btn">
-                    <span class="material-symbols-rounded" aria-hidden="true">logout</span>
-                    Logout
-                </button>
-            </form>
         </div>
 
         <section class="shell">
