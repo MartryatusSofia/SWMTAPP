@@ -649,7 +649,7 @@
                             <span class="material-symbols-rounded" aria-hidden="true">search</span>
                         </button>
                     </form>
-                    <a href="{{ route('teacher.export.pdf', ['q' => $search, 'class_id' => $selectedClassId]) }}" class="back" style="font-size: 0.78rem; padding: 6px 12px; height: auto; background: var(--success); color: #fff; border-color: var(--success);" title="Download laporan PDF">
+                    <a href="{{ $exportPdfUrl }}" class="back" style="font-size: 0.78rem; padding: 6px 12px; height: auto; background: var(--success); color: #fff; border-color: var(--success);" title="Download laporan PDF">
                         <span class="material-symbols-rounded" style="font-size: 1rem;">picture_as_pdf</span>
                         Download PDF
                     </a>
