@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Test - Spatial Working Memory Test</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -698,7 +699,10 @@
         const totalStages = {{ $totalStages }};
         const sections = @json($sections ?? []);
         const resultBaseUrl = @json(route('test.result', $registration));
+        const progressSyncUrl = @json(route('test.progress.update', $registration));
+        const initialServerProgress = @json($serverProgress ?? null);
         const storageKey = `swmt_resume_{{ $registration->id }}`;
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
         let currentSectionIndex = {{ max(0, $currentStage - 1) }};
         let currentSlideIndex = 0;
         let isTransitioning = false;
@@ -707,14 +711,71 @@
         let isSubmittingResult = false;
         let countdownTimer = null;
         let hasStartedFlow = false;
+        let uiStage = 'slide';
+        let progressSyncTimer = null;
+        let progressSyncInFlight = false;
+        let pendingProgressSync = false;
 
-        const saveProgress = () => {
-            const data = {
+        const buildProgressData = () => {
+            return {
                 currentSectionIndex,
+                currentSlideIndex,
+                uiStage,
+                pickedOrder,
                 sectionResults,
                 sections,
+                updatedAt: new Date().toISOString(),
             };
+        };
+
+        const queueServerProgressSync = () => {
+            if (progressSyncTimer) {
+                clearTimeout(progressSyncTimer);
+            }
+
+            progressSyncTimer = setTimeout(async () => {
+                if (progressSyncInFlight) {
+                    pendingProgressSync = true;
+                    return;
+                }
+
+                progressSyncInFlight = true;
+                const payload = buildProgressData();
+
+                try {
+                    await fetch(progressSyncUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                        },
+                        body: JSON.stringify({
+                            current_section_index: payload.currentSectionIndex,
+                            current_slide_index: payload.currentSlideIndex,
+                            ui_stage: payload.uiStage,
+                            picked_order: payload.pickedOrder,
+                            section_results: payload.sectionResults,
+                            sections: payload.sections,
+                            updated_at: payload.updatedAt,
+                        }),
+                    });
+                } catch (error) {
+                    console.error('Failed syncing progress:', error);
+                } finally {
+                    progressSyncInFlight = false;
+                    if (pendingProgressSync) {
+                        pendingProgressSync = false;
+                        queueServerProgressSync();
+                    }
+                }
+            }, 300);
+        };
+
+        const saveProgress = () => {
+            const data = buildProgressData();
             localStorage.setItem(storageKey, JSON.stringify(data));
+            queueServerProgressSync();
         };
 
         const clearProgress = () => {
@@ -722,30 +783,47 @@
         };
 
         const tryResume = () => {
+            let localData = null;
             const saved = localStorage.getItem(storageKey);
-            if (!saved) return false;
-            
-            try {
-                const data = JSON.parse(saved);
-                if (data.currentSectionIndex >= totalStages) {
+            if (saved) {
+                try {
+                    localData = JSON.parse(saved);
+                } catch (error) {
+                    console.error('Error parsing local progress:', error);
                     clearProgress();
-                    return false;
                 }
-                
-                // Override local variables
-                currentSectionIndex = data.currentSectionIndex;
-                sectionResults = data.sectionResults || [];
-                // Penting: timpa sections agar urutan gambar tidak berubah saat refresh
-                if (data.sections && data.sections.length > 0) {
-                    sections.splice(0, sections.length, ...data.sections);
-                }
-                
-                console.log('Resuming from section', currentSectionIndex + 1);
-                return true;
-            } catch (e) {
-                console.error('Error resuming:', e);
+            }
+
+            const serverData = initialServerProgress && typeof initialServerProgress === 'object'
+                ? initialServerProgress
+                : null;
+
+            const localTs = localData?.updatedAt ? Date.parse(localData.updatedAt) : 0;
+            const serverTs = serverData?.updatedAt ? Date.parse(serverData.updatedAt) : 0;
+            const data = serverTs > localTs ? serverData : localData;
+
+            if (!data) {
                 return false;
             }
+
+            if ((data.currentSectionIndex ?? 0) >= totalStages) {
+                clearProgress();
+                return false;
+            }
+
+            currentSectionIndex = Number.isInteger(data.currentSectionIndex) ? data.currentSectionIndex : 0;
+            currentSlideIndex = Number.isInteger(data.currentSlideIndex) ? data.currentSlideIndex : 0;
+            uiStage = typeof data.uiStage === 'string' ? data.uiStage : 'slide';
+            pickedOrder = Array.isArray(data.pickedOrder) ? data.pickedOrder : [];
+            sectionResults = Array.isArray(data.sectionResults) ? data.sectionResults : [];
+
+            if (Array.isArray(data.sections) && data.sections.length > 0) {
+                sections.splice(0, sections.length, ...data.sections);
+            }
+
+            saveProgress();
+            console.log('Resuming from section', currentSectionIndex + 1);
+            return true;
         };
 
         const startSectionCountdown = () => {
@@ -753,6 +831,9 @@
                 clearTimeout(countdownTimer);
                 countdownTimer = null;
             }
+
+            uiStage = 'countdown';
+            saveProgress();
 
             let currentCount = 3;
             countdownDisplay.classList.remove('hidden');
@@ -837,6 +918,16 @@
             const section = getCurrentSection();
             const slideSequence = Array.isArray(section.slides) ? section.slides : [];
 
+            const savedSectionResult = sectionResults[currentSectionIndex] || null;
+            if (uiStage === 'score' && savedSectionResult) {
+                showSectionScorePage(
+                    savedSectionResult.orangBenar,
+                    savedSectionResult.urutanBenar,
+                    savedSectionResult.poin
+                );
+                return;
+            }
+
             if (currentSlideIndex >= slideSequence.length) {
                 renderRecallStage(section);
                 return;
@@ -846,6 +937,7 @@
             const nextImage = currentSlide ? currentSlide.image : null;
             const nextPrompt = currentSlide ? currentSlide.prompt : 'Ingat gambar dibawah ini!';
             const isFruitSlide = currentSlide && currentSlide.type === 'fruit';
+            uiStage = 'slide';
 
             if (isFruitSlide) {
                 personSection.style.display = 'none';
@@ -922,6 +1014,7 @@
             const targets = Array.isArray(section.recall_targets) ? section.recall_targets : [];
             pickedOrder = pickedOrder.filter(img => img !== imagePath);
             updatePickedSummary(targets);
+            saveProgress();
         };
 
         const submitFinalResult = () => {
@@ -967,6 +1060,7 @@
                 // Deselect
                 pickedOrder = pickedOrder.filter(img => img !== imagePath);
                 updatePickedSummary(targets);
+                saveProgress();
                 return;
             }
 
@@ -976,6 +1070,7 @@
 
             pickedOrder.push(imagePath);
             updatePickedSummary(targets);
+            saveProgress();
         };
 
         const confirmRecall = () => {
@@ -1011,6 +1106,7 @@
             fruitCard.style.display = 'none';
             recallStage.style.display = 'none';
             sectionScoreStage.style.display = 'block';
+            uiStage = 'score';
 
             sectionScoreTitle.textContent = `Skor Bagian ${currentBagian}`;
             scoreOrangBenar.textContent = String(orangBenar);
@@ -1032,8 +1128,12 @@
                 currentSectionIndex += 1;
                 currentSlideIndex = 0;
                 pickedOrder = [];
+                uiStage = 'countdown';
+                saveProgress();
                 startSectionCountdown();
             };
+
+            saveProgress();
         };
 
         const renderRecallStage = (section) => {
@@ -1041,6 +1141,7 @@
             fruitCard.style.display = 'none';
             recallStage.style.display = 'block';
             sectionScoreStage.style.display = 'none';
+            uiStage = 'recall';
 
             const recallTargets = Array.isArray(section.recall_targets) ? section.recall_targets : [];
             const recallPeopleOptions = Array.isArray(section.recall_options) ? section.recall_options : [];
@@ -1062,6 +1163,7 @@
             confirmBtn.onclick = confirmRecall;
 
             updatePickedSummary(recallTargets);
+            saveProgress();
         };
 
         const chooseFruitOption = () => {
@@ -1080,6 +1182,7 @@
 
             animateSectionTransition(() => {
                 currentSlideIndex += 1;
+                saveProgress();
             });
         };
 
@@ -1093,6 +1196,8 @@
             const wasResumed = tryResume();
             if (wasResumed) {
                 console.log('Test resumed successfully');
+            } else {
+                saveProgress();
             }
             
             setTimeout(startSectionCountdown, 500);

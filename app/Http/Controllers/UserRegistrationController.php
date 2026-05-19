@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\TeacherClass;
 use App\Models\TestRegistration;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -15,11 +16,54 @@ class UserRegistrationController extends Controller
 {
     public function showForm(): View|RedirectResponse
     {
-        return view('user.register-test');
+        if ($redirect = $this->requireStudent()) {
+            return $redirect;
+        }
+
+        $student = Auth::user();
+        $inProgressRegistration = TestRegistration::query()
+            ->where('user_id', $student->id)
+            ->whereNull('total_poin')
+            ->latest('created_at')
+            ->first();
+
+        if ($inProgressRegistration) {
+            return redirect()
+                ->route('test.start', $inProgressRegistration)
+                ->with('success', 'Tes sebelumnya belum selesai. Sistem mengarahkan ke sesi terakhir kamu.');
+        }
+
+        $registrationMode = session('registration_mode', 'independent');
+        $classCode = session('pending_class_code');
+
+        return view('user.register-test', [
+            'registrationMode' => $registrationMode,
+            'classCode' => $classCode,
+        ]);
     }
 
     public function store(Request $request): RedirectResponse
     {
+        $student = Auth::user();
+        if ($redirect = $this->requireStudent()) {
+            return $redirect;
+        }
+
+        $inProgressRegistration = TestRegistration::query()
+            ->where('user_id', $student->id)
+            ->whereNull('total_poin')
+            ->latest('created_at')
+            ->first();
+
+        if ($inProgressRegistration) {
+            return redirect()
+                ->route('test.start', $inProgressRegistration)
+                ->with('success', 'Tes sebelumnya belum selesai. Sistem mengarahkan ke sesi terakhir kamu.');
+        }
+
+        $registrationMode = $request->session()->get('registration_mode', 'independent');
+        $classCodeFromSession = $request->session()->get('pending_class_code');
+
         $validated = $request->validate([
             'school' => ['required', 'string', 'max:255'],
             'class_code' => ['nullable', 'string', 'max:20'],
@@ -27,6 +71,17 @@ class UserRegistrationController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'birth_date' => ['required', 'date'],
         ]);
+
+        if ($registrationMode === 'with_code') {
+            $validated['class_code'] = strtoupper(trim((string) ($classCodeFromSession ?: $validated['class_code'])));
+
+            if ($validated['class_code'] === '') {
+                return redirect()->route('student.start.with-code')
+                    ->withErrors(['class_code' => 'Masukkan kode kelas terlebih dahulu.']);
+            }
+        } else {
+            $validated['class_code'] = '';
+        }
 
         $teacherClassId = null;
 
@@ -50,7 +105,10 @@ class UserRegistrationController extends Controller
             'birth_date' => $validated['birth_date'],
             'address' => '-', 
             'teacher_class_id' => $teacherClassId,
+            'user_id' => $student->id,
         ]);
+
+        $request->session()->forget(['registration_mode', 'pending_class_code']);
 
         return redirect()
             ->route('test.guide', $registration);
@@ -58,6 +116,10 @@ class UserRegistrationController extends Controller
 
     public function showGuide(TestRegistration $registration): View|RedirectResponse
     {
+        if ($redirect = $this->authorizeStudentRegistration($registration)) {
+            return $redirect;
+        }
+
         return view('user.test-guide', compact('registration'));
     }
 
@@ -72,6 +134,9 @@ class UserRegistrationController extends Controller
 
     public function startTest(TestRegistration $registration): View|RedirectResponse
     {
+        if ($redirect = $this->authorizeStudentRegistration($registration)) {
+            return $redirect;
+        }
 
         // Scan folder People dan Buah untuk membentuk 15 bagian test.
         $peoplePath = public_path('images/People');
@@ -193,6 +258,23 @@ class UserRegistrationController extends Controller
             }
         }
 
+        if (is_array($registration->progress_sections) && count($registration->progress_sections) > 0) {
+            $sections = $registration->progress_sections;
+        }
+
+        $serverProgress = null;
+        if (!is_null($registration->progress_current_section) && is_array($registration->progress_sections)) {
+            $serverProgress = [
+                'currentSectionIndex' => (int) $registration->progress_current_section,
+                'currentSlideIndex' => (int) ($registration->progress_current_slide ?? 0),
+                'uiStage' => (string) ($registration->progress_ui_stage ?? 'slide'),
+                'pickedOrder' => is_array($registration->progress_picked_order) ? $registration->progress_picked_order : [],
+                'sectionResults' => is_array($registration->progress_section_results) ? $registration->progress_section_results : [],
+                'sections' => is_array($registration->progress_sections) ? $registration->progress_sections : [],
+                'updatedAt' => optional($registration->progress_updated_at)->toIso8601String(),
+            ];
+        }
+
         $firstSection = $sections[0] ?? ['slides' => []];
         $firstSlide = $firstSection['slides'][0] ?? null;
         $randomImage = $firstSlide['image'] ?? null;
@@ -205,11 +287,46 @@ class UserRegistrationController extends Controller
             'totalStages',
             'sections',
             'stagePrompt',
+            'serverProgress',
         ));
+    }
+
+    public function updateProgress(Request $request, TestRegistration $registration): JsonResponse
+    {
+        if ($this->authorizeStudentRegistration($registration)) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $validated = $request->validate([
+            'current_section_index' => ['required', 'integer', 'min:0'],
+            'current_slide_index' => ['required', 'integer', 'min:0'],
+            'ui_stage' => ['nullable', 'string', 'max:20'],
+            'picked_order' => ['nullable', 'array'],
+            'picked_order.*' => ['string'],
+            'section_results' => ['nullable', 'array'],
+            'sections' => ['required', 'array'],
+            'updated_at' => ['nullable', 'string'],
+        ]);
+
+        $registration->update([
+            'progress_current_section' => $validated['current_section_index'],
+            'progress_current_slide' => $validated['current_slide_index'],
+            'progress_ui_stage' => $validated['ui_stage'] ?? 'slide',
+            'progress_picked_order' => $validated['picked_order'] ?? [],
+            'progress_section_results' => $validated['section_results'] ?? [],
+            'progress_sections' => $validated['sections'],
+            'progress_updated_at' => now(),
+        ]);
+
+        return response()->json(['ok' => true]);
     }
 
     public function showFruitStage(TestRegistration $registration): View|RedirectResponse
     {
+        if ($redirect = $this->authorizeStudentRegistration($registration)) {
+            return $redirect;
+        }
+
         $currentStage = 1;
         $totalStages = 15;
         $fruitImage = 'images/Buah/Jeruk.png';
@@ -219,6 +336,10 @@ class UserRegistrationController extends Controller
 
     public function showResult(Request $request, TestRegistration $registration): View|RedirectResponse
     {
+        if ($redirect = $this->authorizeStudentRegistration($registration)) {
+            return $redirect;
+        }
+
         // Jika data sudah ada di database (sudah pernah disave), gunakan data tersebut.
         // Jika belum ada, ambil dari query parameter dan simpan ke database.
         
@@ -229,6 +350,18 @@ class UserRegistrationController extends Controller
             $orangSalah = $registration->orang_salah;
             $urutanSalah = $registration->urutan_salah;
             $totalBagian = 15; // Default
+
+            if (!is_null($registration->progress_current_section)) {
+                $registration->update([
+                    'progress_current_section' => null,
+                    'progress_current_slide' => null,
+                    'progress_ui_stage' => null,
+                    'progress_picked_order' => null,
+                    'progress_section_results' => null,
+                    'progress_sections' => null,
+                    'progress_updated_at' => null,
+                ]);
+            }
         } else {
             $totalBagian = max(1, (int) $request->query('total_bagian', 15));
             $maksOrang = $totalBagian * 2;
@@ -249,6 +382,13 @@ class UserRegistrationController extends Controller
                 'urutan_salah' => $urutanSalah,
                 'total_poin' => $totalPoin,
                 'tested_at' => now(),
+                'progress_current_section' => null,
+                'progress_current_slide' => null,
+                'progress_ui_stage' => null,
+                'progress_picked_order' => null,
+                'progress_section_results' => null,
+                'progress_sections' => null,
+                'progress_updated_at' => null,
             ]);
         }
 
@@ -271,7 +411,10 @@ class UserRegistrationController extends Controller
 
     public function exportResultPdf(TestRegistration $registration)
     {
-        // Izinkan download PDF tanpa login selama data test sudah ada
+        if ($redirect = $this->authorizeStudentRegistration($registration)) {
+            return $redirect;
+        }
+
         if ($registration->total_poin === null) {
             abort(404, 'Data test belum tersedia.');
         }
@@ -317,5 +460,31 @@ class UserRegistrationController extends Controller
         $user = Auth::user();
 
         return (bool) $user && $user->role === 'student';
+    }
+
+    private function requireStudent(): ?RedirectResponse
+    {
+        if (!$this->studentLoggedIn()) {
+            Auth::logout();
+
+            return redirect()->route('student.login');
+        }
+
+        return null;
+    }
+
+    private function authorizeStudentRegistration(TestRegistration $registration): ?RedirectResponse
+    {
+        if ($redirect = $this->requireStudent()) {
+            return $redirect;
+        }
+
+        $student = Auth::user();
+        if (!$student || $registration->user_id !== $student->id) {
+            return redirect()->route('student.dashboard')
+                ->withErrors(['login' => 'Data test tidak ditemukan untuk akun siswa ini.']);
+        }
+
+        return null;
     }
 }

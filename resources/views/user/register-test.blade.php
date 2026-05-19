@@ -257,9 +257,14 @@
     </style>
 </head>
 <body>
+    @php
+        $mode = $registrationMode ?? 'independent';
+        $presetClassCode = old('class_code', $classCode ?? '');
+        $showCodeModal = $mode === 'with_code' && $presetClassCode === '';
+    @endphp
     <main class="page">
         <!-- Modal Popup Kode Kelas -->
-        <div id="codeModal" class="modal-overlay {{ old('class_code') || $errors->has('class_code') ? 'hidden' : '' }}">
+        <div id="codeModal" class="modal-overlay {{ $showCodeModal ? '' : 'hidden' }}">
             <div class="modal-content">
                 <div class="modal-icon">
                     <span class="material-symbols-rounded">key</span>
@@ -289,11 +294,11 @@
                 onmouseout="this.style.color='var(--ink)'; this.style.transform='translateY(0)'"
                 onmousedown="this.style.transform='scale(0.96)'"
                 onmouseup="this.style.transform='scale(1)'"
-                onclick="skipClassCode()">Saya tidak memiliki kode</button>
+                onclick="skipClassCode()">Kembali ke dashboard</button>
             </div>
         </div>
 
-        <section id="registerCard" class="card {{ old('class_code') || $errors->has('class_code') ? 'active' : '' }}" aria-label="Form Pendaftaran Spatial Working Memory Test">
+        <section id="registerCard" class="card {{ $showCodeModal ? '' : 'active' }}" aria-label="Form Pendaftaran Spatial Working Memory Test">
             <h1>Pendaftaran</h1>
             <p class="subtitle">Spatial Working Memory Test</p>
 
@@ -311,7 +316,17 @@
                 @csrf
 
                 <!-- Hidden Input untuk Kode Kelas -->
-                <input type="hidden" id="class_code" name="class_code" value="{{ old('class_code') }}">
+                <input type="hidden" id="class_code" name="class_code" value="{{ $presetClassCode }}">
+
+                @if ($mode === 'with_code' && $presetClassCode !== '')
+                    <div class="field">
+                        <label class="label" for="class_code_readonly">
+                            <span class="material-symbols-rounded" aria-hidden="true">key</span>
+                            Kode Kelas
+                        </label>
+                        <input id="class_code_readonly" type="text" value="{{ $presetClassCode }}" readonly>
+                    </div>
+                @endif
 
                 <div class="field">
                     <label class="label" for="school">
@@ -352,15 +367,7 @@
 
     <script>
         function skipClassCode() {
-            const hiddenInput = document.getElementById('class_code');
-            const modal = document.getElementById('codeModal');
-            const card = document.getElementById('registerCard');
-
-            // Kosongkan kode kelas (akan masuk ke super admin)
-            hiddenInput.value = '';
-            
-            modal.classList.add('hidden');
-            card.classList.add('active');
+            window.location.href = "{{ route('student.dashboard') }}";
         }
 
         function submitClassCode() {
@@ -384,11 +391,14 @@
         }
 
         // Jika menekan Enter di input modal
-        document.getElementById('modal_class_code').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                submitClassCode();
-            }
-        });
+        const classCodeInput = document.getElementById('modal_class_code');
+        if (classCodeInput) {
+            classCodeInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    submitClassCode();
+                }
+            });
+        }
     </script>
 </body>
 </html>
