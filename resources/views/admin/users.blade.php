@@ -64,7 +64,7 @@
             padding: 9px 12px;
             text-decoration: none;
             border-radius: 999px;
-            border: 1px solid var(--line);
+            border: 1px solid #494F55;
             color: #33435f;
             background: rgba(255, 255, 255, 0.74);
             font-weight: 500;

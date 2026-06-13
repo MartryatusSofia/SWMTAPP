@@ -93,11 +93,11 @@
         textarea {
             width: 100%;
             border-radius: 14px;
-            border: 1px solid var(--line);
+            border: 1px solid #494F55;
             background: rgba(255, 255, 255, 0.64);
             outline: none;
             font: inherit;
-            color: #1f2739;
+            color: #494F55;
             padding: 10px 12px;
             transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }

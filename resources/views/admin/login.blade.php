@@ -92,11 +92,11 @@
         input {
             width: 100%;
             border-radius: 14px;
-            border: 1px solid var(--line);
+            border: 1px solid #494F55;
             background: rgba(255, 255, 255, 0.64);
             outline: none;
             font: inherit;
-            color: #1f2739;
+            color: #494F55;
             padding: 10px 12px;
             transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
@@ -108,6 +108,40 @@
 
         input:focus {
             border-color: rgba(15, 134, 195, 0.48);
+            box-shadow: 0 0 0 3px rgba(15, 134, 195, 0.14);
+        }
+
+        .password-wrap {
+            position: relative;
+        }
+
+        .password-wrap input {
+            padding-right: 44px;
+        }
+
+        .password-toggle {
+            position: absolute;
+            top: 50%;
+            right: 12px;
+            transform: translateY(-50%);
+            width: 34px;
+            height: 34px;
+            border: 0;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.7);
+            cursor: pointer;
+            display: grid;
+            place-items: center;
+            color: #41506a;
+            padding: 0;
+        }
+
+        .password-toggle:hover {
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .password-toggle:focus {
+            outline: none;
             box-shadow: 0 0 0 3px rgba(15, 134, 195, 0.14);
         }
 
@@ -313,7 +347,17 @@
                         <span class="material-symbols-rounded" aria-hidden="true">lock</span>
                         Password
                     </label>
-                    <input id="password" name="password" type="password" placeholder="Masukkan password" required>
+                    <div class="password-wrap">
+                        <input id="password" name="password" type="password" placeholder="Masukkan password" required>
+                        <button
+                            type="button"
+                            class="password-toggle"
+                            id="passwordToggle"
+                            aria-label="Tampilkan password"
+                        >
+                            <span class="material-symbols-rounded" aria-hidden="true" id="passwordToggleIcon">visibility</span>
+                        </button>
+                    </div>
                 </div>
 
                 <button class="btn" type="submit">Masuk</button>
@@ -324,5 +368,32 @@
             </div>
         </section>
     </main>
+
+    <script>
+        (function () {
+            const input = document.getElementById('password');
+            const toggle = document.getElementById('passwordToggle');
+            const icon = document.getElementById('passwordToggleIcon');
+
+            if (!input || !toggle || !icon) {
+                return;
+            }
+
+            const setState = (isVisible) => {
+                input.type = isVisible ? 'text' : 'password';
+                icon.textContent = isVisible ? 'visibility_off' : 'visibility';
+                toggle.setAttribute('aria-label', isVisible ? 'Sembunyikan password' : 'Tampilkan password');
+            };
+
+            let visible = false;
+            setState(visible);
+
+            toggle.addEventListener('click', () => {
+                visible = !visible;
+                setState(visible);
+                input.focus();
+            });
+        })();
+    </script>
 </body>
 </html>

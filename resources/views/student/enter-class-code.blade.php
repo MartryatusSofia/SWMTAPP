@@ -64,11 +64,11 @@
         input {
             width: 100%;
             border-radius: 12px;
-            border: 1px solid var(--line);
+            border: 1px solid #494F55;
             background: rgba(255, 255, 255, 0.76);
             outline: none;
             font: inherit;
-            color: #1f2739;
+            color: #494F55;
             padding: 11px 12px;
             margin-bottom: 14px;
         }
