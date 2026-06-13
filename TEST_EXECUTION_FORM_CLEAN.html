@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Case Execution - SWMT Application</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 3px solid #2c3e50;
+            padding-bottom: 20px;
+        }
+        
+        .header h1 {
+            color: #2c3e50;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+        
+        .section-title {
+            background-color: #3498db;
+            color: white;
+            padding: 12px 15px;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            border-left: 4px solid #2980b9;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-size: 13px;
+        }
+        
+        th {
+            background-color: #34495e;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: bold;
+            border: 1px solid #2c3e50;
+            white-space: nowrap;
+        }
+        
+        td {
+            padding: 10px 12px;
+            border: 1px solid #bdc3c7;
+            vertical-align: top;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #ecf0f1;
+        }
+        
+        tr:hover {
+            background-color: #d5dbdc;
+        }
+        
+        .no-column {
+            width: 40px;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        .scenario-column {
+            width: 180px;
+        }
+        
+        .test-case-column {
+            width: 200px;
+        }
+        
+        .expected-column {
+            width: 250px;
+        }
+        
+        .result-column {
+            width: 200px;
+        }
+        
+        .conclusion-column {
+            width: 150px;
+        }
+        
+        .status-pass {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            display: inline-block;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .status-fail {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            display: inline-block;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            display: inline-block;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .instructions {
+            background-color: #e8f4f8;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        
+        .instructions h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .instructions ul {
+            margin-left: 20px;
+            color: #555;
+        }
+        
+        .instructions li {
+            margin-bottom: 8px;
+            line-height: 1.6;
+        }
+        
+        .summary {
+            margin-top: 40px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            border: 2px solid #dee2e6;
+        }
+        
+        .summary h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+        
+        .summary-item {
+            display: inline-block;
+            margin-right: 30px;
+            margin-bottom: 10px;
+        }
+        
+        .summary-item strong {
+            color: #34495e;
+        }
+        
+        .page-break {
+            page-break-after: always;
+            margin: 40px 0;
+            border-top: 1px dashed #bdc3c7;
+            padding-top: 40px;
+        }
+        
+        .fill-line {
+            border-bottom: 1px solid #333;
+            display: inline-block;
+            width: 200px;
+            margin: 0 5px;
+        }
+        
+        @media print {
+            body {
+                background-color: white;
+            }
+            .container {
+                box-shadow: none;
+                max-width: 100%;
+            }
+            table {
+                font-size: 11px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📋 TEST CASE EXECUTION DOCUMENT</h1>
+            <p>Sistem Web Menggunakan Teknologi (SWMT) Application</p>
+            <p>Tanggal: 25 Mei 2026 | Testing Method: Black-Box Testing</p>
+        </div>
+        
+        <div class="instructions">
+            <h3>📌 Instruksi Penggunaan:</h3>
+            <ul>
+                <li><strong>Hasil Pengujian:</strong> Isi dengan hasil aktual saat menjalankan test case (output, pesan error, dll)</li>
+                <li><strong>Kesimpulan:</strong> Isi dengan PASS atau FAIL berdasarkan perbandingan hasil dengan yang diharapkan</li>
+                <li>Jika FAIL, dokumentasikan masalah di kolom Hasil Pengujian</li>
+                <li>Setiap tester harus menjalankan test case secara sistematis</li>
+            </ul>
+        </div>
+
+        <!-- SECTION 1: STUDENT AUTHENTICATION -->
+        <div class="section-title">1️⃣ STUDENT AUTHENTICATION (Autentikasi Siswa)</div>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th class="no-column">No.</th>
+                    <th class="scenario-column">Skenario Pengujian</th>
+                    <th class="test-case-column">Test Case</th>
+                    <th class="expected-column">Hasil yang Diharapkan</th>
+                    <th class="result-column">Hasil Pengujian</th>
+                    <th class="conclusion-column">Kesimpulan</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="no-column">1</td>
+                    <td>Registrasi Siswa - Data Valid</td>
+                    <td>Navigasi ke /student/register, isi form dengan data valid (nama, email, password, konfirmasi password), submit</td>
+                    <td>Akun siswa berhasil dibuat. Dialihkan ke dashboard siswa. Pesan sukses muncul: "Akun siswa berhasil dibuat."</td>
+                    <td><span style="color: #666;">_______________________________</span></td>
+                    <td><span class="status-pending">Perlu Diuji</span></td>
+                </tr>
+                <tr>
+                    <td class="no-column">2</td>
+                    <td>Registrasi Siswa - Nama Kosong</td>
+                    <td>Biarkan field nama kosong, lengkapi field lain, submit</td>
+                    <td>Error validasi: "nama harus diisi"</td>
+                    <td><span style="color: #666;">_______________________________</span></td>
+                    <td><span class="status-pending">Perlu Diuji</span></td>
+                </tr>
+                <tr>
+                    <td class="no-column">3</td>
+                    <td>Registrasi Siswa - Email Kosong</td>
+                    <td>Biarkan field email kosong, lengkapi field lain, submit</td>
+                    <td>Error validasi: "email harus diisi"</td>
+                    <td><span style="color: #666;">_______________________________</span></td>
+                    <td><span class="status-pending">Perlu Diuji</span></td>
+                </tr>
+                <tr>
+                    <td class="no-column">4</td>
+                    <td>Registrasi Siswa - Format Email Tidak Valid</td>
+                    <td>Masukkan format email tidak valid (mis: "bukanemail"), lengkapi field lain, submit</td>
+                    <td>Error validasi: "format email tidak valid"</td>
+                    <td><span style="color: #666;">_______________________________</span></td>
+                    <td><span class="status-pending">Perlu Diuji</span></td>
+                </tr>
+                <tr>
+                    <td class="no-column">5</td>
+                    <td>Registrasi Siswa - Password Kosong</td>
+                    <td>Lengkapi nama dan email, biarkan password kosong, submit</td>
+                    <td>Error validasi: "password harus diisi"</td>
+                    <td><span style="color: #666;">_______________________________</span></td>
+                    <td><span class="status-pending">Perlu Diuji</span></td>
+                </tr>
+                <tr>
+                    <td class="no-column">6</td>
+                    <td>Registrasi Siswa - Password Tidak Cocok</td>
+                    <td>Masukkan password: "password123", konfirmasi: "password124", submit</td>
+                    <td>Error validasi: "konfirmasi password tidak cocok"</td>
+                    <td><span style="color: #666;">_______________________________</span></td>
+                    <td><span class="status-pending">Perlu Diuji</span></td>
+                </tr>
+                <tr>
+                    <td class="no-column">7</td>
+                    <td>Registrasi Siswa - Password Terlalu Pendek</td>
+                    <td>Masukkan password: "pass" (4 karakter), konfirmasi sama, submit</td>
+                    <td>Error validasi: "password minimal 6 karakter"</td>
+                    <td><span style="color: #666;">_______________________________</span></td>
+                    <td><span class="status-pending">Perlu Diuji</span></td>
+                </tr>
+                <tr>
+                    <td class="no-column">8</td>
+                    <td>Registrasi Siswa - Email Duplikat</td>
+                    <td>Daftar dengan email "test@mail.com", logout, coba daftar lagi dengan email yang sama</td>
+                    <td>Error validasi: "email sudah terdaftar"</td>
+                    <td><span style="color: #666;">_______________________________</span></td>
+                    <td><span class="status-pending">Perlu Diuji</span></td>
+                </tr>
+                <tr>
+                    <td class="no-column">9</td>
+                    <td>Login Siswa - Kredensial Valid</td>
+                    <td>Navigasi ke /student/login, masukkan email terdaftar dan password benar, klik login</td>
+                    <td>Login berhasil. Dialihkan ke dashboard siswa. Pesan: "Login siswa berhasil."</td>
+                    <td><span style="color: #666;">_______________________________</span></td>
+                    <td><span class="status-pending">Perlu Diuji</span></td>
+                </tr>
+                <tr>
+                    <td class="no-column">10</td>
+                    <td>Login Siswa - Password Salah</td>
+                    <td>Masukkan email terdaftar dengan password salah, klik login</td>
+                    <td>Pesan error: "Email atau password siswa tidak valid."</td>
+                    <td><span style="color: #666;">_______________________________</span></td>
+                    <td><span class="status-pending">Perlu Diuji</span></td>
+                </tr>
+                <tr>
+                    <td class="no-column">11</td>
+                    <td>Login Siswa - Email Tidak Terdaftar</td>
+                    <td>Masukkan email tidak terdaftar "tidaada@mail.com", masukkan password, klik login</td>
+                    <td>Pesan error: "Email atau password siswa tidak valid."</td>
+                    <td><span style="color: #666;">_______________________________</span></td>
+                    <td><span class="status-pending">Perlu Diuji</span></td>
+                </tr>
+                <tr>
+                    <td class="no-column">12</td>
+                    <td>Logout Siswa</td>
+                    <td>Login sebagai siswa, klik tombol logout</td>
+                    <td>Session dihancurkan. Dialihkan keluar dari dashboard. Tidak bisa akses halaman terlindungi</td>
+                    <td><span style="color: #666;">_______________________________</span></td>
+                    <td><span class="status-pending">Perlu Diuji</span></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- SECTION 2: TEACHER AUTHENTICATION -->
+        <div class="section-title">2️⃣ TEACHER/ADMIN AUTHENTICATION (Autentikasi Guru)</div>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th class="no-column">No.</th>
+                    <th class="scenario-column">Skenario Pengujian</th>
+                    <th class="test-case-column">Test Case</th>
+                    <th class="expected-column">Hasil yang Diharapkan</th>
+                    <th class="result-column">Hasil Pengujian</th>
+                    <th class="conclusion-column">Kesimpulan</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="no-column">13</td>
+                    <td>Registrasi Guru - Data Valid</td>
+                    <td>Navigasi ke /teacher/register, isi form dengan nama, email, password, konfirmasi password yang valid, submit</td>
+                    <td>Akun dibuat. Dialihkan ke halaman login guru dengan pesan sukses. Email pre-filled</td>
+                    <td><span style="color: #666;">_______________________________</span></td>
+                    <td><span class="status-pending">Perlu Diuji</span></td>
+                </tr>
+                <tr>
+                    <td class="no-column">14</td>
+                    <td>Registrasi Guru - Nama Kosong</td>
+                    <td>Biarkan nama kosong, lengkapi field lain, submit</td>
+                    <td>Error validasi: "nama harus diisi"</td>
+                    <td><span style="color: #666;">_______________________________</span></td>
+                    <td><span class="status-pending">Perlu Diuji</span></td>
+                </tr>
+                <tr>
+                    <td class="no-column">15</td>
+                    <td>Registrasi Guru - Password Tidak Cocok</td>
+                    <td>Masukkan password: "guru123", konfirmasi: "guru124", submit</td>
+                    <td>Error validasi: "konfirmasi password tidak cocok"</td>
+                    <td><span style="color: #666;">_______________________________</span></td>
+                    <td><span class="status-pending">Perlu Diuji</span></td>
+                </tr>
+                <tr>
+                    <td class="no-column">16</td>
+                    <td>Registrasi Guru - Email Duplikat</td>
+                    <td>Daftar dengan "guru@mail.com", logout, coba daftar lagi dengan email sama</td>
+                    <td>Error validasi: "email sudah terdaftar"</td>
+                    <td><span style="color: #666;">_______________________________</span></td>
+                    <td><span class="status-pending">Perlu Diuji</span></td>
+                </tr>
+                <tr>
+                    <td class="no-column">17</td>
+                    <td>Login Guru - Kredensial Valid</td>
+                    <td>Navigasi ke /teacher/login, masukkan email terdaftar dan password benar, klik login</td>
+                    <td>Login berhasil. Dialihkan ke dashboard guru</td>
+                    <td><span style="color: #666;">_______________________________</span></td>
+                    <td><span class="status-pending">Perlu Diuji</span></td>
+                </tr>
+                <tr>
+                    <td class="no-column">18</td>
+                    <td>Login Guru - Password Salah</td>
+                    <td>Masukkan email terdaftar dengan password salah, klik login</td>
+                    <td>Pesan error: "Email atau password admin salah."</td>
+                    <td><span style="color: #666;">_______________________________</span></td>
+                    <td><span class="status-pending">Perlu Diuji</span></td>
+                </tr>
+                <tr>
+                    <td class="no-column">19</td>
+                    <td>Login Guru - Email Tidak Terdaftar</td>
+                    <td>Masukkan email tidak terdaftar, masukkan password, klik login</td>
+                    <td>Pesan error: "Email atau password admin salah."</td>
+                    <td><span style="color: #666;">_______________________________</span></td>
+                    <td><span class="status-pending">Perlu Diuji</span></td>
+                </tr>
+                <tr>
+                    <td class="no-column">20</td>
+                    <td>Logout Guru</td>
+                    <td>Login sebagai guru, klik tombol logout</td>
+                    <td>Session dihancurkan. Dialihkan keluar. Tidak bisa akses dashboard guru</td>
+                    <td><span style="color: #666;">_______________________________</span></td>
+                    <td><span class="status-pending">Perlu Diuji</span></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- SECTION 3: TEST REGISTRATION -->
+        <div class="section-title">3️⃣ STUDENT TEST REGISTRATION (Pendaftaran Test Siswa)</div>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th class="no-column">No.</th>
+                    <th class="scenario-column">Skenario Pengujian</th>
+                    <th class="test-case-column">Test Case</th>
+                    <th class="expected-column">Hasil yang Diharapkan</th>
+                    <th class="result-column">Hasil Pengujian</th>
+                    <th class="conclusion-column">Kesimpulan</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="no-column">21</td>
+                    <td>Pendaftaran Test - Tidak Login</td>
+                    <td>Navigasi ke /register-test tanpa login</td>
+                    <td>Dialihkan ke halaman login</td>
+                    <td><span style="color: #666;">_______________________________</span></td>
+                    <td><span class="status-pending">Perlu Diuji</span></td>
+                </tr>
+                <tr>
+                    <td class="no-column">22</td>
+                    <td>Pendaftaran Test - Data Valid (Tanpa Kode)</td>
+                    <td>Login sebagai siswa, isi: sekolah, nama kelas, nama, tanggal lahir (biarkan kode kelas kosong), submit</td>
+                    <td>Pendaftaran dibuat berhasil. Tidak ada teacher_class_id. Dialihkan ke halaman mulai test</td>
+                    <td><span style="color: #666;">_______________________________</span></td>
+                    <td><span class="status-pending">Perlu Diuji</span></td>
+                </tr>
+                <tr>
+                    <td class="no-column">23</td>
+                    <td>Pendaftaran Test - Sekolah Kosong</td>
+                    <td>Biarkan sekolah kosong, lengkapi field lain, submit</td>
+                    <td>Error validasi: "sekolah harus diisi"</td>
+                    <td><span style="color: #666;">_______________________________</span></td>
+                    <td><span class="status-pending">Perlu Diuji</span></td>
+                </tr>
+                <tr>
+                    <td class="no-column">24</td>
+                    <td>Pendaftaran Test - Nama Kelas Kosong</td>
+                    <td>Biarkan nama kelas kosong, lengkapi field lain, submit</td>
+                    <td>Error validasi: "nama kelas harus diisi"</td>
+                    <td><span style="color: #666;">_______________________________</span></td>
+                    <td><span class="status-pending">Perlu Diuji</span></td>
+                </tr>
+                <tr>
+                    <td class="no-column">25</td>
+                    <td>Pendaftaran Test - Nama Siswa Kosong</td>
+                    <td>Biarkan field nama kosong, lengkapi field lain, submit</td>
+                    <td>Error validasi: "nama harus diisi"</td>
+                    <td><span style="color: #666;">_______________________________</span></td>
+                    <td><span class="status-pending">Perlu Diuji</span></td>
+                </tr>
+                <tr>
+                    <td class="no-column">26</td>
+                    <td>Pendaftaran Test - Tanggal Lahir Kosong</td>
+                    <td>Biarkan tanggal lahir kosong, lengkapi field lain, submit</td>
+                    <td>Error validasi: "tanggal lahir harus diisi"</td>
+                    <td><span style="color: #666;">_______________________________</span></td>
+                    <td><span class="status-pending">Perlu Diuji</span></td>
+                </tr>
+                <tr>
+                    <td class="no-column">27</td>
+                    <td>Pendaftaran Test - Kode Kelas Valid</td>
+                    <td>Guru membuat kelas dengan kode (mis: "ABC123"), siswa masukkan kode ini, submit</td>
+                    <td>Pendaftaran dibuat dengan teacher_class_id terhubung ke kelas</td>
+                    <td><span style="color: #666;">_______________________________</span></td>
+                    <td><span class="status-pending">Perlu Diuji</span></td>
+                </tr>
+                <tr>
+                    <td class="no-column">28</td>
+                    <td>Pendaftaran Test - Kode Kelas Tidak Valid</td>
+                    <td>Masukkan kode tidak ada "XYZ999", submit</td>
+                    <td>Pesan error: "Kode kelas tidak ditemukan. Silakan cek kembali kode dari guru."</td>
+                    <td><span style="color: #666;">_______________________________</span></td>
+                    <td><span class="status-pending">Perlu Diuji</span></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- SECTION 4: CLASS MANAGEMENT -->
+        <div class="section-title">4️⃣ CLASS MANAGEMENT (Manajemen Kelas Guru)</div>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th class="no-column">No.</th>
+                    <th class="scenario-column">Skenario Pengujian</th>
+                    <th class="test-case-column">Test Case</th>
+                    <th class="expected-column">Hasil yang Diharapkan</th>
+                    <th class="result-column">Hasil Pengujian</th>
+                    <th class="conclusion-column">Kesimpulan</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="no-column">29</td>
+                    <td>Buat Kelas - Data Valid</td>
+                    <td>Login sebagai guru, isi nama kelas "Kelas 5A", submit</td>
+                    <td>Kelas dibuat. Kode 6 karakter auto-generated unik. Pesan sukses: "Kelas berhasil dibuat. Kode kelas: ABC123"</td>
+                    <td><span style="color: #666;">_______________________________</span></td>
+                    <td><span class="status-pending">Perlu Diuji</span></td>
+                </tr>
+                <tr>
+                    <td class="no-column">30</td>
+                    <td>Buat Kelas - Nama Kosong</td>
+                    <td>Biarkan nama kelas kosong, submit</td>
+                    <td>Error validasi: "nama kelas harus diisi"</td>
+                    <td><span style="color: #666;">_______________________________</span></td>
+                    <td><span class="status-pending">Perlu Diuji</span></td>
+                </tr>
+                <tr>
+                    <td class="no-column">31</td>
+                    <td>Lihat Daftar Kelas</td>
+                    <td>Login sebagai guru, navigasi ke dashboard</td>
+                    <td>Semua kelas yang dibuat guru tampil dengan nama, kode, dan jumlah siswa</td>
+                    <td><span style="color: #666;">_______________________________</span></td>
+                    <td><span class="status-pending">Perlu Diuji</span></td>
+                </tr>
+                <tr>
+                    <td class="no-column">32</td>
+                    <td>Cari Kelas Berdasarkan Nama</td>
+                    <td>Guru memiliki banyak kelas, masukkan term pencarian "Kelas 5", submit</td>
+                    <td>Hanya kelas yang cocok dengan "Kelas 5" tampil dalam hasil</td>
+                    <td><span style="color: #666;">_______________________________</span></td>
+                    <td><span class="status-pending">Perlu Diuji</span></td>
+                </tr>
+                <tr>
+                    <td class="no-column">33</td>
+                    <td>Hapus Kelas</td>
+                    <td>Guru membuat kelas, klik tombol hapus, konfirmasi penghapusan</td>
+                    <td>Kelas dihapus dari database dan hilang dari daftar. Pesan sukses tampil</td>
+                    <td><span style="color: #666;">_______________________________</span></td>
+                    <td><span class="status-pending">Perlu Diuji</span></td>
+                </tr>
+                <tr>
+                    <td class="no-column">34</td>
+                    <td>Hanya Kelas Sendiri Terlihat</td>
+                    <td>Guru A membuat kelas, logout. Guru B membuat kelas. Masing-masing login dan cek</td>
+                    <td>Guru A hanya lihat kelas mereka. Guru B hanya lihat kelas mereka. Tidak ada cross-viewing</td>
+                    <td><span style="color: #666;">_______________________________</span></td>
+                    <td><span class="status-pending">Perlu Diuji</span></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- SECTION 5: STUDENT MANAGEMENT -->
+        <div class="section-title">5️⃣ STUDENT REGISTRATION MANAGEMENT (Manajemen Registrasi Siswa)</div>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th class="no-column">No.</th>
+                    <th class="scenario-column">Skenario Pengujian</th>
+                    <th class="test-case-column">Test Case</th>
+                    <th class="expected-column">Hasil yang Diharapkan</th>
+                    <th class="result-column">Hasil Pengujian</th>
+                    <th class="conclusion-column">Kesimpulan</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="no-column">35</td>
+                    <td>Lihat Pendaftaran Siswa</td>
+                    <td>Guru login, navigasi ke dashboard, lihat daftar pendaftaran</td>
+                    <td>Semua pendaftaran siswa guru tampil dengan: nama, sekolah, kelas, tanggal lahir, status tes</td>
+                    <td><span style="color: #666;">_______________________________</span></td>
+                    <td><span class="status-pending">Perlu Diuji</span></td>
+                </tr>
+                <tr>
+                    <td class="no-column">36</td>
+                    <td>Cari Siswa Berdasarkan Nama</td>
+                    <td>Guru memiliki banyak siswa, masukkan term pencarian "Andi", submit</td>
+                    <td>Pendaftaran yang cocok dengan "Andi" tampil dalam hasil</td>
+                    <td><span style="color: #666;">_______________________________</span></td>
+                    <td><span class="status-pending">Perlu Diuji</span></td>
+                </tr>
+                <tr>
+                    <td class="no-column">37</td>
+                    <td>Filter Siswa Berdasarkan Kelas</td>
+                    <td>Guru memiliki siswa di berbagai kelas, pilih kelas spesifik dari dropdown filter</td>
+                    <td>Hanya siswa dari kelas terpilih yang tampil</td>
+                    <td><span style="color: #666;">_______________________________</span></td>
+                    <td><span class="status-pending">Perlu Diuji</span></td>
+                </tr>
+                <tr>
+                    <td class="no-column">38</td>
+                    <td>Edit Pendaftaran Siswa</td>
+                    <td>Guru klik edit pada siswa, ubah nama dari "Nama Lama" ke "Nama Baru", save</td>
+                    <td>Data siswa berhasil diperbarui. Perubahan tampil di daftar</td>
+                    <td><span style="color: #666;">_______________________________</span></td>
+                    <td><span class="status-pending">Perlu Diuji</span></td>
+                </tr>
+                <tr>
+                    <td class="no-column">39</td>
+                    <td>Hapus Pendaftaran Siswa</td>
+                    <td>Guru klik hapus pada siswa, konfirmasi penghapusan</td>
+                    <td>Pendaftaran siswa dihapus dari database. Hilang dari daftar</td>
+                    <td><span style="color: #666;">_______________________________</span></td>
+                    <td><span class="status-pending">Perlu Diuji</span></td>
+                </tr>
+                <tr>
+                    <td class="no-column">40</td>
+                    <td>Hanya Siswa Sendiri Terlihat</td>
+                    <td>Guru A memiliki siswa, Guru B memiliki siswa. Masing-masing login dan cek</td>
+                    <td>Guru A hanya lihat siswa mereka. Guru B hanya lihat siswa mereka</td>
+                    <td><span style="color: #666;">_______________________________</span></td>
+                    <td><span class="status-pending">Perlu Diuji</span></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- SECTION 6: TEST EXECUTION -->
+        <div class="section-title">6️⃣ TEST EXECUTION (Eksekusi Test)</div>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th class="no-column">No.</th>
+                    <th class="scenario-column">Skenario Pengujian</th>
+                    <th class="test-case-column">Test Case</th>
+                    <th class="expected-column">Hasil yang Diharapkan</th>
+                    <th class="result-column">Hasil Pengujian</th>
+                    <th class="conclusion-column">Kesimpulan</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="no-column">41</td>
+                    <td>Tampilkan Halaman Mulai Test</td>
+                    <td>Login sebagai siswa, daftar untuk test, navigasi ke /test/{registration}</td>
+                    <td>Halaman mulai test tampil dengan instruksi dan tombol mulai</td>
+                    <td><span style="color: #666;">_______________________________</span></td>
+                    <td><span class="status-pending">Perlu Diuji</span></td>
+                </tr>
+                <tr>
+                    <td class="no-column">42</td>
+                    <td>Simpan Progress Test</td>
+                    <td>Siswa mulai test, selesaikan bagian pertama, submit progress ke /test/{registration}/progress</td>
+                    <td>Progress tersimpan: section saat ini, slide saat ini, ui_stage, timestamp updated tercatat</td>
+                    <td><span style="color: #666;">_______________________________</span></td>
+                    <td><span class="status-pending">Perlu Diuji</span></td>
+                </tr>
+                <tr>
+                    <td class="no-column">43</td>
+                    <td>Lanjutkan Sesi Test</td>
+                    <td>Siswa selesaikan update progress, halaman refresh, navigasi kembali ke test</td>
+                    <td>Progress tersimpan dikembalikan. Test berlanjut dari posisi terakhir</td>
+                    <td><span style="color: #666;">_______________________________</span></td>
+                    <td><span class="status-pending">Perlu Diuji</span></td>
+                </tr>
+                <tr>
+                    <td class="no-column">44</td>
+                    <td>Cegah Timpa Test Dalam Proses</td>
+                    <td>Siswa memiliki test belum selesai (total_poin NULL), navigasi ke /register-test lagi</td>
+                    <td>Dialihkan ke test dalam proses dengan pesan: "Tes sebelumnya belum selesai."</td>
+                    <td><span style="color: #666;">_______________________________</span></td>
+                    <td><span class="status-pending">Perlu Diuji</span></td>
+                </tr>
+                <tr>
+                    <td class="no-column">45</td>
+                    <td>Tampilkan Hasil Test</td>
+                    <td>Siswa selesai test, navigasi ke /test-result/{registration}</td>
+                    <td>Halaman hasil tampil: total score, jawaban benar (orang_benar, urutan_benar), jawaban salah (orang_salah, urutan_salah), timestamp tested_at</td>
+                    <td><span style="color: #666;">_______________________________</span></td>
+                    <td><span class="status-pending">Perlu Diuji</span></td>
+                </tr>
+                <tr>
+                    <td class="no-column">46</td>
+                    <td>Ekspor Hasil ke PDF</td>
+                    <td>Lihat hasil test, klik "Ekspor PDF" atau navigasi ke /test-result/{registration}/pdf</td>
+                    <td>File PDF berhasil dibuat dan diunduh dengan semua informasi hasil</td>
+                    <td><span style="color: #666;">_______________________________</span></td>
+                    <td><span class="status-pending">Perlu Diuji</span></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- SECTION 7: DATA EXPORT -->
+        <div class="section-title">7️⃣ DATA EXPORT (Ekspor Data)</div>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th class="no-column">No.</th>
+                    <th class="scenario-column">Skenario Pengujian</th>
+                    <th class="test-case-column">Test Case</th>
+                    <th class="expected-column">Hasil yang Diharapkan</th>
+                    <th class="result-column">Hasil Pengujian</th>
+                    <th class="conclusion-column">Kesimpulan</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="no-column">47</td>
+                    <td>Guru Ekspor PDF</td>
+                    <td>Guru login, navigasi ke /teacher/export-pdf</td>
+                    <td>File PDF dibuat dan diunduh berisi data siswa guru</td>
+                    <td><span style="color: #666;">_______________________________</span></td>
+                    <td><span class="status-pending">Perlu Diuji</span></td>
+                </tr>
+                <tr>
+                    <td class="no-column">48</td>
+                    <td>PDF Guru Hanya Berisi Data Sendiri</td>
+                    <td>Guru A ekspor PDF, Guru B ekspor PDF, cek isi</td>
+                    <td>PDF Guru A berisi hanya siswa mereka. PDF Guru B berisi hanya siswa mereka</td>
+                    <td><span style="color: #666;">_______________________________</span></td>
+                    <td><span class="status-pending">Perlu Diuji</span></td>
+                </tr>
+                <tr>
+                    <td class="no-column">49</td>
+                    <td>Super Admin Ekspor PDF</td>
+                    <td>Super admin login, navigasi ke /superadmin/export-pdf</td>
+                    <td>PDF dibuat dan diunduh berisi data SEMUA siswa dari semua guru</td>
+                    <td><span style="color: #666;">_______________________________</span></td>
+                    <td><span class="status-pending">Perlu Diuji</span></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- SECTION 8: SUPER ADMIN -->
+        <div class="section-title">8️⃣ SUPER ADMIN FEATURES (Fitur Super Admin)</div>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th class="no-column">No.</th>
+                    <th class="scenario-column">Skenario Pengujian</th>
+                    <th class="test-case-column">Test Case</th>
+                    <th class="expected-column">Hasil yang Diharapkan</th>
+                    <th class="result-column">Hasil Pengujian</th>
+                    <th class="conclusion-column">Kesimpulan</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="no-column">50</td>
+                    <td>Dashboard Super Admin</td>
+                    <td>Super admin login, navigasi ke /superadmin/dashboard</td>
+                    <td>Dashboard tampil: total guru, total kelas, total siswa, daftar semua pendaftaran</td>
+                    <td><span style="color: #666;">_______________________________</span></td>
+                    <td><span class="status-pending">Perlu Diuji</span></td>
+                </tr>
+                <tr>
+                    <td class="no-column">51</td>
+                    <td>Super Admin Lihat Semua Data</td>
+                    <td>Super admin lihat dashboard, Guru A punya 5 siswa, Guru B punya 3 siswa</td>
+                    <td>Dashboard tampil ke-8 siswa dari kedua guru</td>
+                    <td><span style="color: #666;">_______________________________</span></td>
+                    <td><span class="status-pending">Perlu Diuji</span></td>
+                </tr>
+                <tr>
+                    <td class="no-column">52</td>
+                    <td>Super Admin Cari Siswa</td>
+                    <td>Super admin masukkan term pencarian "Andi", submit</td>
+                    <td>Hasil tampil semua siswa bernama "Andi" dari semua guru</td>
+                    <td><span style="color: #666;">_______________________________</span></td>
+                    <td><span class="status-pending">Perlu Diuji</span></td>
+                </tr>
+                <tr>
+                    <td class="no-column">53</td>
+                    <td>Super Admin Hapus Siswa Apapun</td>
+                    <td>Super admin klik hapus pada siswa apapun, konfirmasi penghapusan</td>
+                    <td>Siswa dihapus dari database. Hilang dari daftar</td>
+                    <td><span style="color: #666;">_______________________________</span></td>
+                    <td><span class="status-pending">Perlu Diuji</span></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- SECTION 9: SECURITY & EDGE CASES -->
+        <div class="section-title">9️⃣ KEAMANAN & KASUS KHUSUS (Security & Edge Cases)</div>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th class="no-column">No.</th>
+                    <th class="scenario-column">Skenario Pengujian</th>
+                    <th class="test-case-column">Test Case</th>
+                    <th class="expected-column">Hasil yang Diharapkan</th>
+                    <th class="result-column">Hasil Pengujian</th>
+                    <th class="conclusion-column">Kesimpulan</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="no-column">54</td>
+                    <td>Siswa Tidak Bisa Akses Route Guru</td>
+                    <td>Login sebagai siswa, coba navigasi ke /teacher/dashboard</td>
+                    <td>Akses ditolak. Dialihkan ke halaman tidak sah atau home</td>
+                    <td><span style="color: #666;">_______________________________</span></td>
+                    <td><span class="status-pending">Perlu Diuji</span></td>
+                </tr>
+                <tr>
+                    <td class="no-column">55</td>
+                    <td>Guru Tidak Bisa Akses Route Super Admin</td>
+                    <td>Login sebagai guru, coba navigasi ke /superadmin/dashboard</td>
+                    <td>Akses ditolak. Pesan error: "Anda tidak memiliki akses ke halaman Super Admin."</td>
+                    <td><span style="color: #666;">_______________________________</span></td>
+                    <td><span class="status-pending">Perlu Diuji</span></td>
+                </tr>
+                <tr>
+                    <td class="no-column">56</td>
+                    <td>SQL Injection di Email</td>
+                    <td>Coba email: `" OR "1"="1` di form login, submit</td>
+                    <td>Login gagal. Sistem tidak dikompromikan. Error SQL tidak ditampilkan</td>
+                    <td><span style="color: #666;">_______________________________</span></td>
+                    <td><span class="status-pending">Perlu Diuji</span></td>
+                </tr>
+                <tr>
+                    <td class="no-column">57</td>
+                    <td>Serangan XSS di Field Nama</td>
+                    <td>Daftar dengan nama: `&lt;script&gt;alert('xss')&lt;/script&gt;`, cek profil</td>
+                    <td>Script tidak dijalankan. Nama ditampilkan sebagai plain text atau HTML-encoded</td>
+                    <td><span style="color: #666;">_______________________________</span></td>
+                    <td><span class="status-pending">Perlu Diuji</span></td>
+                </tr>
+                <tr>
+                    <td class="no-column">58</td>
+                    <td>Upaya Registrasi Concurrent</td>
+                    <td>Dua pengguna coba daftar dengan email sama secara bersamaan</td>
+                    <td>Hanya satu registrasi berhasil. Tidak ada email duplikat di database</td>
+                    <td><span style="color: #666;">_______________________________</span></td>
+                    <td><span class="status-pending">Perlu Diuji</span></td>
+                </tr>
+                <tr>
+                    <td class="no-column">59</td>
+                    <td>Akses ID Registrasi Tidak Valid</td>
+                    <td>Navigasi ke /test/999999 (registrasi tidak ada)</td>
+                    <td>Error 404 atau pesan "Tidak ditemukan". Tidak ada error sistem terbuka</td>
+                    <td><span style="color: #666;">_______________________________</span></td>
+                    <td><span class="status-pending">Perlu Diuji</span></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- SUMMARY -->
+        <div class="summary">
+            <h3>📊 RINGKASAN PENGUJIAN (Test Summary)</h3>
+            <div class="summary-item">
+                <strong>Total Test Cases: 59</strong>
+            </div>
+            <div class="summary-item">
+                <strong>Test Cases PASS (Lulus): ___</strong>
+            </div>
+            <div class="summary-item">
+                <strong>Test Cases FAIL (Gagal): ___</strong>
+            </div>
+            <div class="summary-item">
+                <strong>Success Rate (Tingkat Keberhasilan): ___% </strong>
+            </div>
+            <br>
+            <div style="margin-top: 20px; padding-top: 20px; border-top: 2px solid #dee2e6;">
+                <p><strong>Tanggal Pengujian (Testing Date):</strong> <span class="fill-line"></span></p>
+                <p><strong>Nama Tester (Tester Name):</strong> <span class="fill-line"></span></p>
+                <p><strong>Tanda Tangan (Signature):</strong> <span class="fill-line"></span></p>
+                <p><strong>Catatan Umum (General Notes):</strong></p>
+                <textarea style="width: 100%; height: 100px; padding: 10px; border: 1px solid #ccc; font-family: Arial;"></textarea>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

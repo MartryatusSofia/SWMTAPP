@@ -81,7 +81,7 @@
             width: 100%;
             padding: 12px 16px;
             border-radius: 12px;
-            border: 1px solid var(--line);
+            border: 1px solid #494F55;
             background: rgba(255, 255, 255, 0.5);
             font-family: inherit;
             font-size: 0.95rem;
@@ -93,6 +93,37 @@
             border-color: var(--accent);
             background: #fff;
             box-shadow: 0 0 0 4px rgba(15, 134, 195, 0.1);
+        }
+
+        .password-wrap {
+            position: relative;
+        }
+
+        .password-toggle {
+            position: absolute;
+            top: 50%;
+            right: 12px;
+            transform: translateY(-50%);
+            width: 36px;
+            height: 36px;
+            border: 0;
+            border-radius: 10px;
+            background: transparent;
+            color: var(--muted);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .password-toggle:hover {
+            background: rgba(15, 134, 195, 0.08);
+            color: var(--accent);
+        }
+
+        .password-toggle .material-symbols-rounded {
+            font-size: 20px;
         }
 
         .btn-group {
@@ -204,17 +235,32 @@
 
                 <div class="form-group">
                     <label>Password Saat Ini (isi jika ingin ganti password)</label>
-                    <input type="password" name="current_password">
+                    <div class="password-wrap">
+                        <input id="current_password" type="password" name="current_password">
+                        <button type="button" class="password-toggle" data-target="current_password" aria-label="Tampilkan password saat ini">
+                            <span class="material-symbols-rounded" aria-hidden="true">visibility</span>
+                        </button>
+                    </div>
                 </div>
 
                 <div class="form-group">
                     <label>Password Baru</label>
-                    <input type="password" name="new_password">
+                    <div class="password-wrap">
+                        <input id="new_password" type="password" name="new_password">
+                        <button type="button" class="password-toggle" data-target="new_password" aria-label="Tampilkan password baru">
+                            <span class="material-symbols-rounded" aria-hidden="true">visibility</span>
+                        </button>
+                    </div>
                 </div>
 
                 <div class="form-group">
                     <label>Konfirmasi Password Baru</label>
-                    <input type="password" name="new_password_confirmation">
+                    <div class="password-wrap">
+                        <input id="new_password_confirmation" type="password" name="new_password_confirmation">
+                        <button type="button" class="password-toggle" data-target="new_password_confirmation" aria-label="Tampilkan konfirmasi password baru">
+                            <span class="material-symbols-rounded" aria-hidden="true">visibility</span>
+                        </button>
+                    </div>
                 </div>
 
                 <div class="btn-group">
@@ -224,5 +270,34 @@
             </form>
         </div>
     </div>
+
+    <script>
+        (function () {
+            document.querySelectorAll('.password-toggle').forEach((toggle) => {
+                const targetId = toggle.getAttribute('data-target');
+                const input = targetId ? document.getElementById(targetId) : null;
+                const icon = toggle.querySelector('.material-symbols-rounded');
+
+                if (!input || !icon) {
+                    return;
+                }
+
+                const setState = (isVisible) => {
+                    input.type = isVisible ? 'text' : 'password';
+                    icon.textContent = isVisible ? 'visibility_off' : 'visibility';
+                    toggle.setAttribute('aria-label', isVisible ? 'Sembunyikan password' : 'Tampilkan password');
+                };
+
+                let visible = false;
+                setState(visible);
+
+                toggle.addEventListener('click', () => {
+                    visible = !visible;
+                    setState(visible);
+                    input.focus();
+                });
+            });
+        })();
+    </script>
 </body>
 </html>

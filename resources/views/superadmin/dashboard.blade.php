@@ -141,7 +141,7 @@
             flex: 1;
             padding: 10px 16px;
             border-radius: 12px;
-            border: 1px solid var(--line);
+            border: 1px solid #494F55;
             background: rgba(255,255,255,0.5);
             font-family: inherit;
         }
